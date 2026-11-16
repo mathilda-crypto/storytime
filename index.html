@@ -1,0 +1,718 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Storytime – Connect your dreams (prototype)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,800;1,9..144,600&family=DM+Sans:wght@400;500;700&family=Space+Mono:wght@700&display=swap">
+<style>
+  :root{
+    --paper:#FFF8EE; --card:#FFFDF8; --ink:#2B2440; --muted:#5E5672; --soft:#463E5C;
+    --line:#2B2440; --line2:#EADFD0;
+    --peach:#FFD9C7; --peach-deep:#F7B49C; --mint:#CDEFD8; --mint-deep:#9FD9B2;
+    --lav:#E3DBF7; --lav-deep:#C8B9F0; --butter:#FFF0B8; --sky:#D4EAF7; --rose:#FBD3E0;
+    --acc:#2B2440; --acc-soft:var(--lav);
+    --warm:#7A3E00; --warm-bg:#FFE7C9; --warm-line:#C9822F; --ok:#1E5A35; --ok-bg:var(--mint);
+    --shadow:3px 3px 0 var(--ink); --shadow-lg:5px 5px 0 var(--ink);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);
+    background:#F3E9DC radial-gradient(#E6D6C2 1.2px,transparent 1.3px) 0 0/18px 18px}
+  .app{max-width:440px;min-height:100vh;margin:0 auto;background:var(--paper);display:flex;flex-direction:column;border-left:2px solid var(--ink);border-right:2px solid var(--ink)}
+  .stripes{height:10px;background:linear-gradient(90deg,var(--peach-deep) 0 20%,var(--butter) 20% 40%,var(--mint-deep) 40% 60%,var(--sky) 60% 80%,var(--lav-deep) 80% 100%);border-bottom:2px solid var(--ink)}
+  header{display:flex;align-items:center;gap:8px;padding:14px 14px;background:var(--paper);border-bottom:2px solid var(--ink);position:sticky;top:0;z-index:2}
+  header h1{font-family:Fraunces,Georgia,serif;font-weight:800;font-size:26px;margin:0;letter-spacing:-.01em;line-height:1}
+  header h1 span{font-style:italic;font-weight:600;color:#B5563C}
+  header .sub{font-size:12px;color:var(--muted);margin-top:4px}
+  header .grow{flex:1;display:flex;flex-direction:column}
+  header .btn{min-height:40px;padding:0 11px;font-size:13px}
+  header .iconbtn{width:40px;padding:0;display:flex;align-items:center;justify-content:center}
+  header .iconbtn[hidden]{display:none}
+  .day.skip{background:repeating-linear-gradient(45deg,#fff 0 4px,var(--line2) 4px 8px);color:var(--muted)}
+  .sr{position:absolute;left:-9999px}
+  .focus{position:fixed;inset:0;z-index:50;background:var(--paper);display:flex;flex-direction:column;gap:12px;padding:16px max(16px,calc((100vw - 760px)/2));}
+  .focusbar{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:2px solid var(--ink);padding-bottom:12px}
+  .focus textarea{flex:1;min-height:0;font-size:18px;line-height:1.7;padding:18px 20px;border-radius:18px;box-shadow:var(--shadow-lg);background:#fff repeating-linear-gradient(transparent 0 29px,#F1E6D6 29px 30.6px);background-position:0 20px;background-attachment:local;resize:none}
+  .focusfoot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+  .months{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 10px}
+  .mname{font-family:"Space Mono",ui-monospace,monospace;font-size:11px;font-weight:700;text-transform:uppercase;margin-bottom:4px}
+  .mgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+  .mday{aspect-ratio:1;border:1px solid #D9CBB8;border-radius:3px;background:#fff;padding:0;cursor:pointer;min-width:0}
+  .mday.dot{box-shadow:inset 0 0 0 3px var(--ink)}
+  .mday.now{border:2px solid var(--ink);background:var(--butter)!important}
+  .jrow{display:flex;gap:8px;align-items:stretch}
+  .jrow .choice{flex:1}
+  .star{width:52px;border:2px solid var(--ink);border-radius:16px;background:var(--card);font-size:22px;color:var(--ink)}
+  .star[aria-pressed="true"]{background:var(--butter);box-shadow:var(--shadow)}
+  main{flex:1;padding:18px 16px;display:flex;flex-direction:column;gap:16px;padding-bottom:104px}
+  nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:440px;background:var(--butter);border-top:2px solid var(--ink);display:grid;grid-template-columns:repeat(6,1fr)}
+  nav button{border:none;background:none;min-height:62px;font:inherit;font-size:11.5px;font-weight:500;color:var(--soft);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+  nav button svg{width:22px;height:22px;padding:3px;border-radius:999px;box-sizing:content-box}
+  nav button[aria-current="page"]{color:var(--ink);font-weight:700}
+  nav button[aria-current="page"] svg{background:var(--peach-deep);border:2px solid var(--ink)}
+  .card{background:var(--card);border:2px solid var(--ink);border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:10px;box-shadow:var(--shadow-lg)}
+  .card:nth-of-type(4n+1){background:#FFF6EF}
+  .card:nth-of-type(4n+2){background:#F6FBF7}
+  .card:nth-of-type(4n+3){background:#F8F5FF}
+  .card:nth-of-type(4n){background:#FFFCEB}
+  .bubble{background:var(--sky);border:2px solid var(--ink);border-radius:20px 20px 20px 6px;padding:13px 15px;font-size:15.5px;line-height:1.5;box-shadow:var(--shadow)}
+  .me{align-self:flex-end;max-width:85%;background:var(--rose);color:var(--ink);border:2px solid var(--ink);border-radius:20px 20px 6px 20px;padding:11px 14px;font-size:15px;line-height:1.45;box-shadow:var(--shadow)}
+  .label{font-family:"Space Mono",ui-monospace,monospace;font-size:11.5px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.08em}
+  .hint{font-size:13px;color:var(--muted);line-height:1.45}
+  .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  button{font:inherit;cursor:pointer}
+  .btn{min-height:44px;padding:0 15px;border-radius:999px;border:2px solid var(--ink);background:var(--card);color:var(--ink);font-size:14px;font-weight:500;box-shadow:var(--shadow);transition:transform .08s,box-shadow .08s}
+  .btn:hover{background:#FFF3E4}
+  .btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+  .btn[disabled]{opacity:.5;cursor:not-allowed}
+  .btn.primary{background:var(--peach-deep);color:var(--ink);font-weight:700}
+  .btn.primary:hover{background:#F4A386}
+  .btn.warm{background:var(--butter);color:var(--ink);font-weight:700}
+  .btn.block{width:100%;min-height:52px;font-size:16px}
+  .pill{min-height:44px;padding:0 15px;border-radius:999px;border:2px solid var(--ink);background:var(--card);font-size:14px;color:var(--ink)}
+  .pill[aria-pressed="true"]{background:var(--lav-deep);font-weight:700;box-shadow:var(--shadow)}
+  .choice{text-align:left;padding:11px 13px;border-radius:16px;border:2px solid var(--ink);background:var(--card);min-height:52px;font-size:14px;color:var(--ink)}
+  .choice[aria-pressed="true"]{background:var(--mint);font-weight:700;box-shadow:var(--shadow)}
+  .choice small{display:block;font-weight:400;color:var(--soft);font-size:12.5px;margin-top:2px}
+  input[type=text],input[type=date],input[type=number],textarea,select{font:inherit;font-size:15px;padding:11px 12px;border:2px solid var(--ink);border-radius:14px;color:var(--ink);background:#fff;width:100%}
+  textarea{min-height:140px;resize:vertical;line-height:1.55;background:#fff repeating-linear-gradient(transparent 0 25px,#F1E6D6 25px 26px);background-attachment:local}
+  label.check{display:flex;gap:10px;align-items:center;min-height:44px;font-size:15px}
+  label.check input{width:20px;height:20px;flex-shrink:0;accent-color:#B5563C}
+  .tag{font-family:"Space Mono",ui-monospace,monospace;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;display:inline-block;border:1.5px solid var(--ink)}
+  .tag.rec{color:var(--ok);background:var(--mint)}
+  .tag.read{color:var(--warm);background:var(--warm-bg)}
+  .tag.road{color:var(--warm);background:var(--butter)}
+  .note{font-size:13.5px;line-height:1.45;color:var(--soft);background:var(--lav);border-radius:14px;padding:10px 12px;border:1.5px dashed #9C8CCB}
+  .warmnote{font-size:13.5px;line-height:1.45;color:var(--warm);background:var(--warm-bg);border-radius:14px;padding:10px 12px;border:1.5px dashed var(--warm-line)}
+  .twist{background:var(--butter);border:2px dashed var(--ink);border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:10px}
+  .twist b{font-family:Fraunces,Georgia,serif;font-size:19px;font-style:italic;color:var(--ink)!important}
+  .twist div{color:var(--soft)!important}
+  .quote{background:var(--peach);border:2px solid var(--ink);border-radius:24px;padding:20px;display:flex;flex-direction:column;gap:10px;box-shadow:var(--shadow-lg);position:relative;overflow:hidden}
+  .quote::after{content:"";position:absolute;right:-30px;top:-30px;width:110px;height:110px;border-radius:50%;background:repeating-radial-gradient(circle,var(--butter) 0 8px,var(--peach-deep) 8px 16px);opacity:.75;border:2px solid var(--ink)}
+  .quote q{font-family:Fraunces,Georgia,serif;font-style:italic;font-weight:600;font-size:21px;line-height:1.35;quotes:"“" "”";position:relative;z-index:1;padding-right:46px}
+  .quote .by{font-size:13px;color:var(--soft);position:relative;z-index:1}
+  .quote .row{position:relative;z-index:1}
+  .bar{height:12px;background:#fff;border:2px solid var(--ink);border-radius:999px;overflow:hidden}
+  .bar>span{display:block;height:100%;background:var(--peach-deep)}
+  .src{border:2px solid var(--ink);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;background:#fff}
+  .src .meta{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+  .map{display:grid;gap:6px;font-size:12px;text-align:center}
+  button.day{font:inherit;font-size:12px;color:var(--ink);cursor:pointer;padding:0}
+  .day{height:32px;display:flex;align-items:center;justify-content:center;border-radius:10px;border:1.5px solid var(--ink);background:#fff}
+  .day.done{background:var(--mint-deep);font-weight:700}
+  .day.today{border-width:3px;background:var(--butter);font-weight:800}
+  .day.rev{border-style:dashed;background:var(--lav)}
+  .day.exp{border-style:dashed;background:var(--peach);font-weight:700}
+  .legend{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:12px;color:var(--soft)}
+  .legend i{display:inline-block;width:13px;height:13px;border-radius:4px;margin-right:5px;vertical-align:-2px;border:1.5px solid var(--ink)}
+  .menu{display:flex;flex-direction:column;gap:8px}
+  .banner{background:var(--ink);color:var(--butter);font-family:"Space Mono",ui-monospace,monospace;font-size:11px;padding:7px 12px;text-align:center;letter-spacing:.03em}
+  .seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--lav);border:2px solid var(--ink);border-radius:999px;padding:4px}
+  .seg button{min-height:42px;border:none;border-radius:999px;background:transparent;color:var(--soft);font-size:14px}
+  .seg button[aria-pressed="true"]{background:var(--card);color:var(--ink);font-weight:700;border:2px solid var(--ink)}
+  ul.clean{margin:0;padding-left:18px;line-height:1.6;font-size:14px}
+  .strike{text-decoration:line-through;color:var(--muted)}
+  .big{font-family:Fraunces,Georgia,serif;font-weight:800}
+  .hello{font-family:Fraunces,Georgia,serif;font-size:30px;font-weight:800;line-height:1.1;margin:4px 0 0}
+  .hello em{font-weight:600;color:#B5563C}
+  a{color:#9A3F28;font-weight:500}
+  :focus-visible{outline:3px solid #7A63C9;outline-offset:2px}
+  @media (prefers-reduced-motion:reduce){.btn{transition:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="banner">PROTOTYPE · rule-based replies · data stays in this browser</div>
+  <div class="stripes" aria-hidden="true"></div>
+  <header>
+    <button class="btn iconbtn" id="backBtn" type="button" aria-label="Back"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <div class="grow"><h1>Story<span>time</span></h1><span class="sub" id="subtitle">Connect your dreams</span></div>
+    <button class="btn" id="whereBtn" type="button">Where was I?</button>
+    <button class="btn" id="menuBtn" type="button" aria-label="Open menu">Menu</button>
+  </header>
+  <main id="view" tabindex="-1"></main>
+  <nav aria-label="Main">
+    <button type="button" data-go="write"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>Write</button>
+    <button type="button" data-go="checkin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg>Check-in</button>
+    <button type="button" data-go="diary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11"/></svg>Diary</button>
+    <button type="button" data-go="map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>Map</button>
+    <button type="button" data-go="goals"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4"/><path d="M5 4h12l-2 4 2 4H5"/></svg>Goals</button>
+    <button type="button" data-go="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/></svg>Settings</button>
+  </nav>
+</div>
+<script>
+(function(){
+"use strict";
+var KEY = "storytime-prototype-v1";
+var JOURNEYS = ["Career and freelance","Relationships and finding a partner","Money and finances","Personal planning and habits","Learning and getting better","Creativity and expression","Dreams and inner life","Legacy and family"];
+var QUOTES = [
+  ["Nothing, Lucilius, is ours, except time.","Seneca, Moral Letters to Lucilius, Letter 1 (tr. R. M. Gummere, 1917)"],
+  ["Simplify, simplify.","Henry David Thoreau, Walden (1854)"],
+  ["I went to the woods because I wished to live deliberately.","Henry David Thoreau, Walden (1854)"],
+  ["Trust thyself: every heart vibrates to that iron string.","Ralph Waldo Emerson, “Self-Reliance” (1841)"],
+  ["I am large, I contain multitudes.","Walt Whitman, “Song of Myself”"],
+  ["This above all: to thine own self be true.","William Shakespeare, Hamlet, Act 1, Scene 3"],
+  ["“Hope” is the thing with feathers","Emily Dickinson, poem first line"],
+  ["To see takes time, like to have a friend takes time.","Georgia O’Keeffe, “About Myself” (1939)"]
+];
+var FEELINGS = ["happy","glad","proud","relieved","calm","lighter","excited","grateful","hopeful","nervous","anxious","worried","afraid","scared","sad","lonely","angry","frustrated","annoyed","ashamed","embarrassed","tired","exhausted","stuck","overwhelmed","confused","frozen","froze","disappointed","guilty","jealous","curious","inspired"];
+var HEAVY = ["died","death","funeral","grief","abuse","abused","assault","violence","illness","diagnosis","miscarriage","divorce","bankrupt","fired","hurt me","afraid of him","afraid of her"];
+var RISK = ["kill myself","end my life","suicide","hurt myself","self-harm","self harm","don't want to live","dont want to live","want to die"];
+var CRITIC = [/\bi always\b[^.!?]*/i,/\bi never\b[^.!?]*/i,/\bi'?m not good enough\b[^.!?]*/i,/\bi'?m (so )?(stupid|useless|a failure|hopeless)\b[^.!?]*/i,/\bi can'?t do anything\b[^.!?]*/i];
+var STOP = ("a an and the to of in on at for with without from by about as is are was were be been being it its this that these those i me my we our you your he she they them their his her not no yes do did done have has had will would can could should just so very really also then than but or if when while into out up down over under again more most some any all each other such only own same too s t don now there here what which who whom why how").split(" ");
+
+var state = load();
+var ui = {view:"write", mode:"Listen", draft:"", happened:"", journey:"", vault:false, offRecord:false, savedIdx:null, reflectText:"", reflection:null, twistShown:false, diaryTab:"diary", query:"", includeVault:false, quoteIx:0, jobText:"", ticked:{}, shareSel:{}, menuOpen:false};
+
+function today(){ var d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); }
+function addDays(iso,n){ var d=new Date(iso+"T12:00:00"); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); }
+function daysBetween(a,b){ return Math.round((new Date(b+"T12:00:00")-new Date(a+"T12:00:00"))/86400000); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];}); }
+function blank(){ return {settings:null, programme:null, programmes:[], entries:[], achievements:[], checkins:[], lastActivity:null}; }
+function load(){ try{ var raw=localStorage.getItem(KEY); if(raw){ var s=JSON.parse(raw); return Object.assign(blank(),s);} }catch(e){} return blank(); }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+function setActivity(label){ state.lastActivity={date:today(), view:ui.view, label:label}; save(); }
+function greeting(){ var h=new Date().getHours(); return (h<5?'Still up?':h<12?'Good <em>morning.</em>':h<18?'Good <em>afternoon.</em>':'Good <em>evening.</em>'); }
+function toneLead(){ var t=state.settings?state.settings.tone:"Gentle"; return {Gentle:"Thank you for writing this down. ",Practical:"",Playful:"Okay, story time. ",Direct:""}[t]||""; }
+function has(text,list){ var l=text.toLowerCase(); for(var i=0;i<list.length;i++){ if(l.indexOf(list[i])>=0) return list[i]; } return null; }
+function sentences(t){ return (t.match(/[^.!?\n]+[.!?]?/g)||[]).map(function(s){return s.trim();}).filter(Boolean); }
+function words(t){ return (t.toLowerCase().match(/[a-zåäöéü']+/g)||[]).filter(function(w){return w.length>2 && STOP.indexOf(w)<0;}); }
+
+/* ---------- routing ---------- */
+var view = document.getElementById("view");
+document.querySelectorAll("nav button").forEach(function(b){ b.addEventListener("click",function(){ if(b.getAttribute("data-go")==="map") ui.mapProg=null; go(b.getAttribute("data-go")); }); });
+var VIEWS=["alltime","write","checkin","diary","map","goals","career","settings","programme","share","where","menu","notes","entry","day"];
+var depth=0;
+document.getElementById("menuBtn").addEventListener("click",function(){ go(ui.view==="menu"?"write":"menu"); });
+document.getElementById("whereBtn").addEventListener("click",function(){ go("where"); });
+document.getElementById("backBtn").addEventListener("click",back);
+function go(v){ if(v===ui.view && v!=="entry" && v!=="day"){ render(); return; } depth++; try{ history.pushState({v:v,d:depth},"","#"+v); }catch(e){} show(v); }
+function back(){ if(depth>0){ try{ history.back(); return; }catch(e){} } show(state.programme?"checkin":"write"); }
+function show(v){ if(v!=="programme"&&ui.view==="programme") ui.progNew=false; if(ui.focusMode){ readDraft(); ui.focusMode=false; } if(v==="programme"&&ui.view!=="programme"&&!ui.progNew) ui.prog=null; ui.view=VIEWS.indexOf(v)>=0?v:"write"; ui.menuOpen=false; render(); view.focus(); window.scrollTo(0,0); }
+window.addEventListener("popstate",function(ev){ depth=ev.state&&ev.state.d?ev.state.d:0; var v=(location.hash||"").slice(1); show(v||(state.programme?"checkin":"write")); });
+try{ history.replaceState({v:"start",d:0},"",location.pathname+location.search); }catch(e){}
+
+function render(){
+  document.querySelectorAll("nav button").forEach(function(b){ if(b.getAttribute("data-go")===ui.view) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current"); });
+  var p=state.programme;
+  document.getElementById("subtitle").textContent = p ? ("Day "+dayNo()+(p.days?" of "+p.days:"")+" · "+p.focus) : "Connect your dreams";
+  document.getElementById("backBtn").hidden = !state.settings || (depth===0);
+  if(!state.settings){ view.innerHTML=onboarding(); bind(); return; }
+  if(ui.view==="menu"){ view.innerHTML=menu(); bind(); return; }
+  var f={write:writeView,checkin:checkinView,diary:diaryView,map:mapView,career:careerView,goals:goalsView,settings:settingsView,programme:programmeView,alltime:allTimeView,notes:notesView,entry:entryView,day:dayView,share:shareView,where:whereView}[ui.view]||writeView;
+  view.innerHTML=f(); bind();
+}
+function dayNo(){ var p=state.programme; if(!p) return 0; return Math.max(1,daysBetween(p.start,today())+1); }
+
+/* ---------- views ---------- */
+function onboarding(){
+  return '<p class="hello">Hello, <em>storyteller.</em></p><div class="bubble">Welcome to Storytime – a private place to think, dream and take small brave steps. Three quick choices; you can change them any time.</div>'+
+  '<div class="card"><label class="label" for="folder">Journal folder on your NAS</label><input id="folder" type="text" value="Storytime" aria-describedby="fh"><span id="fh" class="hint">In this prototype, entries are kept in your browser instead.</span></div>'+
+  toneCard("Gentle","Offer them")+
+  '<div class="card"><span class="label">Check-ins</span><div class="row" data-group="rhythm">'+["Daily","3× a week","Weekly","When I open it"].map(function(x,i){return '<button type="button" class="pill" aria-pressed="'+(i===1)+'" data-val="'+x+'">'+x+'</button>';}).join("")+'</div></div>'+
+  '<button type="button" class="btn primary block" data-act="finishOnboarding">Start Storytime</button>'+
+  '<button type="button" class="btn block" data-act="sample">Load sample data to explore</button>';
+}
+function toneCard(tone,twists){
+  return '<div class="card"><span class="label">Tone</span><div class="row" data-group="tone">'+["Gentle","Practical","Playful","Direct"].map(function(x){return '<button type="button" class="pill" aria-pressed="'+(x===tone)+'" data-val="'+x+'">'+x+'</button>';}).join("")+'</div>'+
+  '<span class="label">Plot twists</span><div class="row" data-group="twists">'+["Offer them","Only when I ask"].map(function(x){return '<button type="button" class="pill" aria-pressed="'+(x===twists)+'" data-val="'+x+'">'+x+'</button>';}).join("")+'</div></div>';
+}
+function menu(){
+  var items=[["write","Write an entry"],["checkin","Check-in"],["notes","My notes (all entries)"],["diary","Talk with my diary or coach"],["map","My map (this programme)"],["alltime","All time – all my programmes"],["goals","Goals and milestones"]].concat(hasJ("Career and freelance")?[["career","Career: application kit"]]:[]).concat([["programme","Programme and journeys"],["share","Share with care"],["settings","Settings"]]);
+  return '<div class="bubble">Where would you like to go?</div><div class="menu">'+items.map(function(it,i){return '<button type="button" class="choice" data-go2="'+it[0]+'">'+(i+1)+'. '+it[1]+'</button>';}).join("")+'</div>';
+}
+function whereView(){
+  var a=state.lastActivity, p=state.programme, last=state.entries.slice().sort(function(x,y){return y.written.localeCompare(x.written);})[0];
+  var exp=p&&p.experiment;
+  var h='<div class="bubble">'+(a?'Last time ('+esc(a.date)+') you were in <b>'+esc(a.label)+'</b>.':'I have no saved activity yet.')+'</div><div class="card">';
+  if(p) h+='<div>Main focus: <b>'+esc(p.focus)+'</b> – “'+esc(p.goal)+'”</div>';
+  if(exp) h+='<div>Current experiment: '+esc(exp.action)+' – '+exp.done+' of '+exp.count+', review '+esc(exp.review)+'</div>';
+  h+='<div>Latest entry: '+(last?esc(last.written)+' – '+esc(last.title):'none yet')+'</div></div>';
+  h+='<div class="row">'+(a?'<button type="button" class="btn primary" data-go2="'+esc(a.view)+'">Continue there</button>':'')+'<button type="button" class="btn" data-act="openMenu">Open menu</button></div>';
+  return h;
+}
+function focusView(){
+  var wc=(ui.draft.trim().match(/\S+/g)||[]).length;
+  return '<div class="focus" role="dialog" aria-modal="true" aria-labelledby="focusTitle">'+
+    '<div class="focusbar"><div><span class="label" id="focusTitle">Freewrite · '+esc(ui.mode)+'</span><div class="hint">'+esc(new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"}))+(ui.happened?' · about '+esc(ui.happened):'')+'</div></div>'+
+    '<button type="button" class="btn primary" data-act="collapse" aria-label="Make the writing space smaller again"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg> Smaller</button></div>'+
+    '<label class="sr" for="draftBig">Your entry</label><textarea id="draftBig" placeholder="Write freely. No one is grading this.">'+esc(ui.draft)+'</textarea>'+
+    '<div class="focusfoot"><span class="hint" id="wc" aria-live="polite">'+wc+' word'+(wc===1?'':'s')+'</span><div class="row"><button type="button" class="btn" data-act="promptBig">Starter prompt</button><button type="button" class="btn" data-act="collapse">Done</button></div></div></div>';
+}
+function writeView(){
+  if(ui.focusMode) return focusView();
+  var s=state.settings, h='';
+  if(!state.programme) h+='<div class="note">No programme yet. You can just write, or <a href="#" data-go2="programme">start a programme</a>.</div>';
+  h+='<p class="hello">'+greeting()+'</p><div class="bubble">'+(s.tone==="Direct"?"What’s on your mind?":"What would help most today?")+'</div>';
+  h+='<div class="menu" data-group="mode">'+[["Listen","Help me put this into words. No solutions yet."],["Explore","Ask me questions, connect ideas, show another view."],["Act or create","Turn it into a plan, experiment, message or story."]].map(function(m){return '<button type="button" class="choice" aria-pressed="'+(ui.mode===m[0])+'" data-val="'+m[0]+'">'+m[0]+'<small>'+m[1]+'</small></button>';}).join("")+'</div>';
+  h+='<div class="hint">Tone: '+esc(s.tone)+' · <a href="#" data-go2="settings">change in Settings</a></div>';
+  h+='<div class="card"><div class="row" style="justify-content:space-between"><label class="label" for="draft">Freewrite</label><button type="button" class="btn" id="expandBtn" data-act="expand" aria-label="Open the writing space in full screen"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg> Bigger</button></div><textarea id="draft" placeholder="Write freely. Nothing is analysed until you choose.">'+esc(ui.draft)+'</textarea>'+
+     '<div class="grid2"><div><label class="hint" for="happened">Happened on (optional)</label><input id="happened" type="date" value="'+esc(ui.happened)+'"></div>'+
+     '<div><label class="hint" for="journey">Journey</label><select id="journey"><option value="">None</option>'+(state.programme?state.programme.journeys:JOURNEYS).map(function(j){return '<option'+(ui.journey===j?' selected':'')+'>'+esc(j)+'</option>';}).join("")+'</select></div></div>'+
+     '<div class="note">Your entries are saved automatically when you continue. Tick below only if you want something different.</div>'+
+     '<label class="check"><input type="checkbox" id="offRecord"'+(ui.offRecord?' checked':'')+'> Don’t save this – just talk (off the record)</label>'+
+     '<label class="check"><input type="checkbox" id="vault"'+(ui.vault?' checked':'')+(ui.offRecord?' disabled':'')+'> Extra private: keep in my vault (never shared or used by the coach)</label>'+
+     '<div class="row"><button type="button" class="btn" data-act="prompt">Starter prompt</button><span class="hint">Voice and handwriting photos work on the NAS.</span></div></div>';
+  h+='<div class="grid2"><button type="button" class="btn primary" data-act="reflect">Continue in '+esc(ui.mode)+'</button><button type="button" class="btn" data-act="justSave">'+(ui.offRecord?'Just talk':'Just save this')+'</button>'+
+     '<button type="button" class="btn" data-act="noAnalyse">Don’t analyse this</button><button type="button" class="btn" data-act="stop">Stop here</button></div>';
+  if(ui.reflection) h+=ui.reflection;
+  return h;
+}
+function checkinView(){
+  var p=state.programme, q=QUOTES[ui.quoteIx%QUOTES.length], h='';
+  h+='<div class="quote"><span class="label">A thought for today</span><q>'+esc(q[0])+'</q><span class="by">'+esc(q[1])+'</span><div class="row"><button type="button" class="btn" data-act="nextQuote">Another quote</button><button type="button" class="btn primary" data-act="writeQuote">Write about it</button></div></div>';
+  if(!p) return h+'<div class="card"><div>No programme yet.</div><button type="button" class="btn primary" data-go2="programme">Start a programme</button></div>';
+  var d=dayNo(), pct=p.days?Math.min(100,Math.round(d/p.days*100)):0;
+  h+='<div class="card"><div class="row" style="justify-content:space-between"><b class="big" style="font-size:24px">Day '+d+(p.days?' of '+p.days:'')+'</b>'+(p.days?'<span class="hint">Ends '+esc(addDays(p.start,p.days-1))+'</span>':'<span class="hint">Open-ended</span>')+'</div>'+(p.days?'<div class="bar" role="img" aria-label="'+pct+' percent of the programme"><span style="width:'+pct+'%"></span></div>':'')+
+     '<span class="label">Main focus · '+esc(p.focus)+'</span><div>“'+esc(p.goal)+'”</div>'+(p.paused?'<div class="warmnote">Paused. Nothing to catch up on.</div>':'')+'</div>';
+  var e=p.experiment;
+  var gf=goalsOf(p.focus), nm=gf.milestones.filter(function(m){return !m.done;}).sort(function(a,b){return (a.due||"9").localeCompare(b.due||"9");})[0];
+  h+='<div class="card"><span class="label">Next milestone</span>'+(nm?'<div>'+esc(nm.text)+'</div><div class="hint">'+(nm.due?'Target '+esc(nm.due)+' · ':'')+gf.milestones.filter(function(m){return m.done;}).length+' of '+gf.milestones.length+' done</div>':'<div class="hint">No milestones yet.</div>')+'<button type="button" class="btn" data-go2="goals">Goals and milestones</button></div>';
+  h+='<div class="card"><span class="label">Current experiment</span>'+(e?'<div>'+esc(e.action)+'</div><div class="row" style="justify-content:space-between"><span class="hint">Done '+e.done+' of '+e.count+'</span><span class="hint">Review on '+esc(e.review)+'</span></div><div class="row"><button type="button" class="btn primary" data-act="expDone">I did one today</button><button type="button" class="btn" data-act="expClear">Close experiment</button></div>':'<div class="hint">None yet. Create one from an entry with “Act or create”.</div>')+'</div>';
+  var bg=p.journeys.filter(function(j){return j!==p.focus;});
+  if(bg.length) h+='<div class="card"><span class="label">In the background</span>'+bg.map(function(j){return '<div class="row" style="justify-content:space-between"><span>'+esc(j)+'</span><button type="button" class="btn" data-focus="'+esc(j)+'">Make main focus</button></div>';}).join("")+'</div>';
+  var done=state.checkins.some(function(c){return c.date===today();});
+  h+='<div class="card"><span class="label">How are you today? (optional)</span><div class="grid2">'+["Low","Okay","Good","Skip"].map(function(m){ var c=state.checkins.filter(function(x){return x.date===today();})[0]; return '<button type="button" class="pill" aria-pressed="'+(!!c&&c.mood===m)+'" data-mood="'+m+'">'+m+'</button>';}).join("")+'</div>'+(done?'<div class="hint">Checked in today. Thank you.</div>':'')+'</div>';
+  h+='<div class="grid2"><button type="button" class="btn" data-act="pause">'+(p.paused?'Resume':'Pause')+'</button><button type="button" class="btn" data-act="skip">Skip today</button><button type="button" class="btn" data-act="lighter">'+(p.lighter?'Back to normal':'Go lighter')+'</button><button type="button" class="btn" data-go2="map">Show my map</button></div>';
+  return h;
+}
+function diaryView(){
+  var h='<div class="seg" role="group" aria-label="Who to talk with"><button type="button" aria-pressed="'+(ui.diaryTab==="diary")+'" data-tab="diary">My diary</button><button type="button" aria-pressed="'+(ui.diaryTab==="coach")+'" data-tab="coach">My coach</button></div>';
+  h+='<a href="#" class="hint" data-go2="notes">Browse all my notes by date →</a>';
+  if(ui.diaryTab==="coach") return h+coachView();
+  h+='<div class="card"><label class="label" for="q">Ask your diary</label><input id="q" type="text" value="'+esc(ui.query)+'" placeholder="e.g. interview, pottery, supplier"><label class="check"><input type="checkbox" id="incVault"'+(ui.includeVault?' checked':'')+'> Include my private vault this time</label><button type="button" class="btn primary" data-act="ask">Ask</button></div>';
+  if(!ui.query) return h+'<div class="hint">Answers show the entries they come from. In this prototype the search matches words; on the NAS, the document expert answers in full sentences with citations.</div>';
+  var terms=words(ui.query); if(!terms.length) terms=ui.query.toLowerCase().split(/\s+/);
+  var pool=state.entries.filter(function(e){return ui.includeVault||!e.vault;});
+  var hits=[]; pool.forEach(function(e){ sentences(e.text).forEach(function(s){ var l=s.toLowerCase(); if(terms.some(function(t){return l.indexOf(t)>=0;})) hits.push({e:e,s:s}); }); });
+  hits.sort(function(a,b){return (a.e.happened||a.e.written).localeCompare(b.e.happened||b.e.written);});
+  h+='<div class="me">'+esc(ui.query)+'</div>';
+  if(!hits.length) return h+'<div class="bubble">I searched '+pool.length+' entr'+(pool.length===1?'y':'ies')+(ui.includeVault?' including the vault':' (not the vault)')+' and found nothing about “'+esc(ui.query)+'”. I won’t guess.</div>';
+  var first=hits[0].e, ents=[]; hits.forEach(function(x){ if(ents.indexOf(x.e)<0) ents.push(x.e); });
+  var noDate=ents.filter(function(e){return !e.happened;}).length;
+  var dates=ents.map(function(e){return e.written;}).sort(), gaps=[];
+  for(var i=1;i<dates.length;i++){ if(daysBetween(dates[i-1],dates[i])>10) gaps.push(dates[i-1]+" and "+dates[i]); }
+  h+='<div class="bubble"><div><span class="tag rec">Recorded</span></div><div style="margin-top:6px">The first mention is in an entry written on <b>'+esc(first.written)+'</b>'+(first.happened?' about something that happened on <b>'+esc(first.happened)+'</b>':'')+'. '+ents.length+' entr'+(ents.length===1?'y mentions':'ies mention')+' it.</div>'+
+     '<div style="margin-top:8px"><span class="tag read">My reading</span></div><div style="margin-top:6px">'+readingFor(ents)+'</div>'+
+     ((noDate||gaps.length)?'<div class="note" style="margin-top:8px">Missing: '+(noDate?noDate+' of these entries have no “happened” date. ':'')+(gaps.length?'No entries on this between '+gaps.map(esc).join("; ")+'.':'')+'</div>':'')+'</div>';
+  h+='<span class="label">Sources</span>'+hits.slice(0,12).map(function(x){return '<div class="src" role="button" tabindex="0" data-open="'+state.entries.indexOf(x.e)+'" style="cursor:pointer"><div class="meta"><span>Written '+esc(x.e.written)+(x.e.happened?' · happened '+esc(x.e.happened):'')+'</span><span>'+esc(x.e.title)+(x.e.vault?' · vault':'')+'</span></div><div>“'+esc(x.s)+'”</div></div>';}).join("");
+  return h;
+}
+function readingFor(ents){
+  var feel={}; ents.forEach(function(e){ FEELINGS.forEach(function(f){ if(e.text.toLowerCase().indexOf(f)>=0) feel[f]=(feel[f]||0)+1; }); });
+  var top=Object.keys(feel).sort(function(a,b){return feel[b]-feel[a];}).slice(0,3);
+  if(!top.length) return 'These entries don’t name feelings. Want to add how it felt?';
+  return 'Words you used about this: '+top.map(function(t){return '“'+esc(t)+'”';}).join(", ")+'. That is my summary – check it fits.';
+}
+function coachView(){
+  var p=state.programme, en=state.entries.filter(function(e){return !e.vault;}), h='';
+  if(!en.length) return h+'<div class="bubble">Write a few entries first – then I can look for patterns with you.</div>';
+  var byJ={}; en.forEach(function(e){ var j=e.journey||"No journey"; byJ[j]=(byJ[j]||0)+1; });
+  var feel={}; en.forEach(function(e){ FEELINGS.forEach(function(f){ if(e.text.toLowerCase().indexOf(f)>=0) feel[f]=(feel[f]||0)+1; }); });
+  var top=Object.keys(feel).sort(function(a,b){return feel[b]-feel[a];}).slice(0,3);
+  h+='<div class="card"><span class="label">Your coach’s view</span>';
+  h+='<div><span class="tag rec">Recorded</span></div><ul class="clean">'+Object.keys(byJ).map(function(j){return '<li>'+esc(j)+': '+byJ[j]+' entr'+(byJ[j]===1?'y':'ies')+'</li>';}).join("")+'<li>Check-ins: '+state.checkins.length+'</li>'+(p&&p.experiment?'<li>Experiment: '+esc(p.experiment.action)+' – '+p.experiment.done+' of '+p.experiment.count+'</li>':'')+'</ul>';
+  h+='<div><span class="tag read">My reading</span></div><div style="font-size:14px;line-height:1.5">';
+  if(p){ var f=byJ[p.focus]||0; h+= f? 'Your main focus, '+esc(p.focus)+', has '+f+' entr'+(f===1?'y':'ies')+'. ' : 'You haven’t written about your main focus yet. '; }
+  if(top.length) h+='Feelings that come up most: '+top.map(function(t){return '“'+esc(t)+'”';}).join(", ")+'. ';
+  h+='Does that match how it feels to you?</div>';
+  h+='<div class="note">Suggestion: '+(p&&p.experiment?'review your experiment on '+esc(p.experiment.review)+' – keep, change or drop it.':'pick one small experiment for the next 7 days, linked to “'+esc(p?p.goal:'your goal')+'”.')+'</div></div>';
+  h+='<div class="hint">On the NAS, the coach reads your entries and programme with the document expert and cites them. This prototype only counts.</div>';
+  return h;
+}
+function mapView(){
+  var past=ui.mapProg!=null&&state.programmes[ui.mapProg], p=past||state.programme;
+  if(!p) return '<div class="card"><div>No programme running right now.</div><button type="button" class="btn primary" data-act="newProgramme">Start a programme</button>'+(state.programmes.length?'<button type="button" class="btn" data-go2="alltime">See all my programmes</button>':'')+'</div>';
+  var d=past? 99999 : dayNo(), len=past? daysBetween(p.start,progEnd(p))+1 : (p.days||Math.max(28,Math.ceil(dayNo()/7)*7)), weeks=Math.ceil(len/7);
+  var done={}; state.checkins.forEach(function(c){ done[daysBetween(p.start,c.date)+1]=c.mood==="Skip"?"skip":"done"; });
+  state.entries.forEach(function(e){ var n=daysBetween(p.start,e.written)+1; if(n>0&&n<=len&&!done[n]) done[n]="done"; });
+  var expDay=p.experiment?daysBetween(p.start,p.experiment.review)+1:-1, msDays={};
+  Object.keys(p.objectives||{}).forEach(function(j){ p.objectives[j].milestones.forEach(function(m){ if(m.due) msDays[daysBetween(p.start,m.due)+1]=1; }); });
+  var h='<div class="row" style="justify-content:space-between"><span class="label">'+(past?'Finished programme · '+esc(p.start)+' – '+esc(progEnd(p)):'Current programme')+'</span><a href="#" class="hint" data-act="toAllTime">All time →</a></div><div class="hello">'+esc(p.goal)+'</div>';
+  var nDone=Object.keys(done).filter(function(k){return done[k]==="done";}).length;
+  h+='<div class="grid2"><div><b style="font-size:22px">'+(past?len:Math.min(d,len)+'/'+len)+'</b><div class="hint">days'+(past?' in total':'')+'</div></div><div><b style="font-size:22px">'+nDone+'</b><div class="hint">days with an entry or check-in</div></div></div>';
+  h+='<div class="hint">Tap a day to open its notes.</div><div class="card"><div class="map" style="grid-template-columns:repeat('+weeks+',minmax(0,1fr))">';
+  for(var w=0;w<weeks;w++) h+='<div style="font-weight:600">W'+(w+1)+'</div>';
+  for(var r=0;r<7;r++){ for(var w2=0;w2<weeks;w2++){ var n=w2*7+r+1; if(n>len){ h+='<div></div>'; continue; }
+      var cls="day"; if(done[n]==="done") cls+=" done"; else if(done[n]==="skip") cls+=" skip"; else if(n===expDay||n===len||msDays[n]) cls+=" exp"; else if(n%7===0) cls+=" rev"; if(n===d) cls+=" today";
+      h+='<button type="button" class="'+cls+'" data-day="'+addDays(p.start,n-1)+'" aria-label="Day '+n+', '+addDays(p.start,n-1)+'">'+n+'</button>'; } }
+  h+='</div><div class="legend"><span><i style="background:var(--mint-deep)"></i>done</span><span><i style="background:var(--butter);border-width:3px"></i>today</span><span><i style="background:repeating-linear-gradient(45deg,#fff 0 3px,#EADFD0 3px 6px)"></i>skipped</span><span><i style="background:var(--lav);border-style:dashed"></i>weekly review</span><span><i style="background:var(--peach);border-style:dashed"></i>milestone / review / finish</span></div></div>';
+  var pe=past?progEnd(p):"9999", counts={}; state.entries.forEach(function(e){ if(e.journey&&e.written>=p.start&&e.written<=pe) counts[e.journey]=(counts[e.journey]||0)+1; }); var max=Math.max.apply(null,[1].concat(Object.keys(counts).map(function(k){return counts[k];})));
+  h+='<div class="card"><span class="label">Your journeys (entries)</span>'+p.journeys.map(function(j){ var c=counts[j]||0; return '<div><div class="row" style="justify-content:space-between;font-size:14px"><span>'+(j===p.focus?'★ ':'')+esc(j)+'</span><span class="hint">'+c+'</span></div><div class="bar" role="img" aria-label="'+c+' entries"><span style="width:'+Math.round(c/max*100)+'%;'+(j===p.focus?'':'background:var(--lav-deep)')+'"></span></div></div>'; }).join("")+'</div>';
+  return h;
+}
+function programmeView(){
+  var editing=!!state.programme&&!ui.progNew, p=editing?state.programme:{journeys:[],focus:"",goal:"",days:30};
+  if(!ui.prog) ui.prog={journeys:p.journeys.slice(),focus:p.focus,goal:p.goal,days:p.days,start:today()};
+  var d=ui.prog, h='<div class="bubble">Pick one or more journeys, then choose which one is your main focus. The others wait in the background.</div>';
+  h+='<div class="card"><span class="label">1 · Your journeys</span><div class="hint">Tap to choose one or more. Tap ☆ to make one your main focus.</div><div class="menu">'+JOURNEYS.map(function(j){ var on=d.journeys.indexOf(j)>=0, f=d.focus===j;
+    return '<div class="jrow"><button type="button" class="choice" aria-pressed="'+on+'" data-pj="'+esc(j)+'">'+(on?'✓ ':'')+esc(j)+(f?'<small>Main focus</small>':(on?'<small>In the background</small>':''))+'</button>'+
+      (on?'<button type="button" class="star" aria-pressed="'+f+'" aria-label="Make '+esc(j)+' my main focus" data-pf="'+esc(j)+'">'+(f?'★':'☆')+'</button>':'')+'</div>';}).join("")+'</div><span class="hint">Later: Food tracking and recipes</span></div>';
+  h+='<div class="card"><label class="label" for="goal">2 · Your goal, in your words</label><input id="goal" type="text" value="'+esc(d.goal)+'" placeholder="e.g. Be braver – try one new thing a week"></div>';
+  h+='<div class="card"><span class="label">3 · Time frame</span><div class="row">'+[[7,"7 days"],[30,"30 days"],[90,"90 days"],[0,"Open-ended"]].map(function(x){return '<button type="button" class="pill" aria-pressed="'+(d.days===x[0])+'" data-pd="'+x[0]+'">'+x[1]+'</button>';}).join("")+'</div>'+
+     '<label class="hint" for="customDays">Or your own number of days</label><input id="customDays" type="number" min="1" max="365" placeholder="e.g. 45" value="'+([7,30,90,0].indexOf(d.days)<0?d.days:"")+'"></div>';
+  if(!editing&&state.programme) h='<div class="warmnote">Starting a new programme finishes “'+esc(state.programme.goal)+'” today. Nothing is lost – it moves to All time.</div>'+h;
+  if(!editing) h+='<div class="card"><label class="label" for="pstart">4 · Starts on</label><input id="pstart" type="date" value="'+esc(d.start||today())+'"></div>';
+  h+='<div id="progMsg" role="status"></div><button type="button" class="btn primary block" data-act="saveProgramme">'+(editing?'Update programme':'Start my programme')+'</button>';
+  h+='<div class="grid2"><button type="button" class="btn" data-act="back">Back</button><button type="button" class="btn" data-act="skipProgramme">'+(state.programme?'Cancel':'Skip – just write')+'</button></div>';
+  if(editing){
+    h+='<div class="card"><span class="label">Finish or start something new</span><div class="hint">Started '+esc(p.start)+'. Finishing keeps everything – the programme moves to All time, and your notes stay where they are.</div>'+
+      (ui.confirmFinish?'<div class="warmnote">Finish “'+esc(p.goal)+'” today?</div><div class="grid2"><button type="button" class="btn primary" data-act="finishProgramme">Yes, finish it</button><button type="button" class="btn" data-act="cancelFinish">Not yet</button></div>':
+      '<div class="grid2"><button type="button" class="btn" data-act="askFinish">Finish this programme</button><button type="button" class="btn" data-act="newProgramme">Start a new one</button></div>')+'</div>';
+  }
+  return h;
+}
+function notesView(){
+  var list=state.entries.map(function(e,i){return {e:e,i:i};}).filter(function(x){return ui.showVault||!x.e.vault;});
+  if(ui.notesJ) list=list.filter(function(x){return x.e.journey===ui.notesJ;});
+  if(ui.notesFrom) list=list.filter(function(x){return x.e.written>=ui.notesFrom&&x.e.written<=ui.notesTo;});
+  if(ui.notesQ){ var q=ui.notesQ.toLowerCase(); list=list.filter(function(x){return (x.e.title+" "+x.e.text).toLowerCase().indexOf(q)>=0;}); }
+  list.sort(function(a,b){return b.e.written.localeCompare(a.e.written);});
+  var js=[]; state.entries.forEach(function(e){ if(e.journey&&js.indexOf(e.journey)<0) js.push(e.journey); });
+  var h='<p class="hello">My <em>notes</em></p><div class="card"><div class="grid2"><div><label class="hint" for="nq">Find</label><input id="nq" type="text" value="'+esc(ui.notesQ||"")+'" placeholder="a word"></div><div><label class="hint" for="nj">Journey</label><select id="nj"><option value="">All</option>'+js.map(function(j){return '<option'+(ui.notesJ===j?' selected':'')+'>'+esc(j)+'</option>';}).join("")+'</select></div></div>'+
+    '<label class="check"><input type="checkbox" id="nv"'+(ui.showVault?' checked':'')+'> Show my private vault</label><div class="row"><button type="button" class="btn" data-act="notesFilter">Show</button><button type="button" class="btn" data-go2="alltime">Pick a day in All time</button></div>'+(ui.notesFrom?'<div class="note">Showing '+esc(ui.notesFrom)+' – '+esc(ui.notesTo)+' · <a href="#" data-act="clearRange">show all dates</a></div>':'')+'</div>';
+  if(!list.length) return h+'<div class="bubble">No notes match. <a href="#" data-go2="write">Write one</a>.</div>';
+  var month="";
+  list.forEach(function(x){ var m=x.e.written.slice(0,7); if(m!==month){ month=m; h+='<span class="label">'+esc(new Date(m+"-15T12:00:00").toLocaleDateString("en-GB",{month:"long",year:"numeric"}))+'</span>'; }
+    h+='<button type="button" class="src" style="text-align:left;cursor:pointer;font:inherit" data-open="'+x.i+'"><span class="meta"><span>'+esc(x.e.written)+(x.e.happened?' · happened '+esc(x.e.happened):'')+'</span><span>'+(x.e.vault?'vault':esc(x.e.journey||''))+'</span></span><b style="font-size:15px">'+esc(x.e.title)+'</b><span class="hint">'+esc(x.e.text.slice(0,90))+(x.e.text.length>90?'…':'')+'</span></button>'; });
+  return h;
+}
+function entryView(){
+  var e=state.entries[ui.entryIdx]; if(e) state.lastActivity={date:today(),view:"notes",label:"Reading “"+e.title+"”"};
+  if(!e) return '<div class="bubble">This note no longer exists.</div><button type="button" class="btn" data-go2="notes">All notes</button>';
+  var i=ui.entryIdx, prev=null, next=null, order=state.entries.map(function(x,k){return k;}).filter(function(k){return ui.showVault||!state.entries[k].vault||k===i;}).sort(function(a,b){return state.entries[a].written.localeCompare(state.entries[b].written)||a-b;});
+  var pos=order.indexOf(i); if(pos>0) prev=order[pos-1]; if(pos<order.length-1) next=order[pos+1];
+  var h='<div class="card"><div class="meta row" style="justify-content:space-between"><span class="label">Written '+esc(e.written)+'</span>'+(e.vault?'<span class="tag road">vault</span>':'')+'</div>'+
+    '<div class="hello" style="font-size:24px">'+esc(e.title)+'</div>'+
+    '<div class="hint">'+(e.happened?'Happened on '+esc(e.happened)+' · ':'No “happened” date · ')+(e.journey?esc(e.journey)+' · ':'')+'Mode: '+esc(e.mode)+(e.reflection?' · reflection saved':'')+'</div>'+
+    '<div style="font-size:15.5px;line-height:1.6;white-space:pre-wrap">'+esc(e.text)+'</div></div>';
+  h+='<div class="grid2"><button type="button" class="btn primary" data-act="followUp">Write a follow-up</button><button type="button" class="btn" data-act="askAbout">Ask my diary about this</button>'+(hasJ("Career and freelance")?'<button type="button" class="btn" data-act="entryToBank">Add to achievement bank</button>':'')+'<button type="button" class="btn" data-dayopen="'+esc(e.written)+'">Open this day</button></div>';
+  h+='<div class="grid2"><button type="button" class="btn" data-open="'+(prev===null?'':prev)+'"'+(prev===null?' disabled':'')+'>← Earlier note</button><button type="button" class="btn" data-open="'+(next===null?'':next)+'"'+(next===null?' disabled':'')+'>Later note →</button></div>';
+  h+='<button type="button" class="btn" data-go2="notes">All notes</button>';
+  return h;
+}
+function dayView(){
+  var d=ui.dayDate, es=state.entries.map(function(e,i){return {e:e,i:i};}).filter(function(x){return x.e.written===d||x.e.happened===d;});
+  var c=state.checkins.filter(function(x){return x.date===d;})[0];
+  var pf=progFor(d), p=pf?pf.p:null, n=p?daysBetween(p.start,d)+1:null;
+  var h='<p class="hello">'+esc(new Date(d+"T12:00:00").toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"}))+'</p>'+(n&&n>0?'<div class="hint">Day '+n+(p.days?' of '+p.days:'')+' of “'+esc(p.goal)+'”'+(pf.i===-1?'':' (finished)')+'</div>':'');
+  h+='<div class="card"><span class="label">Check-in</span><div>'+(c?(c.mood==="Skip"?'Skipped – nothing to catch up on.':'Mood: '+esc(c.mood)):'No check-in this day.')+'</div></div>';
+  if(es.length){ h+='<span class="label">Notes</span>'+es.map(function(x){return '<button type="button" class="src" style="text-align:left;cursor:pointer;font:inherit" data-open="'+x.i+'"><span class="meta"><span>'+(x.e.written===d?'Written this day':'Happened this day · written '+esc(x.e.written))+'</span><span>'+(x.e.vault?'vault':esc(x.e.journey||''))+'</span></span><b>'+esc(x.e.title)+'</b></button>';}).join(""); }
+  else h+='<div class="bubble">No notes for this day.</div>';
+  h+='<div class="grid2"><button type="button" class="btn" data-dayopen="'+addDays(d,-1)+'">← Day before</button><button type="button" class="btn" data-dayopen="'+addDays(d,1)+'"'+(d>=today()?' disabled':'')+'>Day after →</button></div>';
+  h+='<button type="button" class="btn primary" data-act="writeForDay">Write about this day</button>';
+  return h;
+}
+var PCOL=["#FFD9C7","#CDEFD8","#E3DBF7","#D4EAF7","#FFF0B8","#FBD3E0"];
+function progEnd(p){ return p.end || (p.days? addDays(p.start,p.days-1) : today()); }
+function allProgs(){ var l=state.programmes.map(function(p,i){return {p:p,i:i};}); if(state.programme) l.push({p:state.programme,i:-1}); l.sort(function(a,b){return a.p.start.localeCompare(b.p.start);}); l.forEach(function(x,k){ x.color=PCOL[k%PCOL.length]; }); return l; }
+function progFor(date){ var l=allProgs().filter(function(x){return date>=x.p.start && date<=(x.i===-1&&!x.p.days?"9999":progEnd(x.p));}); return l[l.length-1]||null; }
+function hasJ(j){ return !!(state.programme&&state.programme.journeys.indexOf(j)>=0); }
+var MILESTONES={
+ "Career and freelance":["Collect 3 achievements in my achievement bank","Tailor my CV to one real ad","Update LinkedIn headline and About","Practise three interview stories out loud","Send my first application","Send five applications"],
+ "Relationships and finding a partner":["Write down what I need and what I can offer","Name one boundary I want to keep","Draft one honest conversation","Have the conversation, then reflect"],
+ "Money and finances":["Write my money story","Set one savings goal in my own numbers","Notice spending for one week","Have one money conversation"],
+ "Personal planning and habits":["Choose my top three priorities","Plan one realistic week","Run a two-week habit experiment","Review: keep, change or drop"],
+ "Learning and getting better":["Define the skill and what good looks like","Practise four times in one week","Ask for one piece of feedback","Show someone what I can do now"],
+ "Creativity and expression":["Collect ten ideas","Finish one small piece","Try one new medium","Share one piece with someone I trust"],
+ "Dreams and inner life":["Log five dreams","Name three symbols that keep returning","Write what they might mean to me","Choose one question to keep exploring"],
+ "Legacy and family":["Write down ten family stories","Collect photos for one story","Interview one relative","Draft the first chapter"]
+};
+function goalsOf(j){ var p=state.programme; p.objectives=p.objectives||{}; if(!p.objectives[j]) p.objectives[j]={objective:(j===p.focus?p.goal:""),milestones:[]}; return p.objectives[j]; }
+function goalsView(){
+  var p=state.programme; if(!p) return '<div class="bubble">Goals live in a programme. Start one to set objectives and milestones.</div><button type="button" class="btn primary block" data-go2="programme">Start a programme</button>';
+  var order=[p.focus].concat(p.journeys.filter(function(j){return j!==p.focus;}));
+  var h='<p class="hello">Goals &amp; <em>milestones</em></p><div class="hint">One objective per journey, broken into small milestones. Your main focus comes first.</div>';
+  order.forEach(function(j){
+    var g=goalsOf(j), ms=g.milestones, done=ms.filter(function(m){return m.done;}).length, pct=ms.length?Math.round(done/ms.length*100):0, open=ui.goalOpen===j||(ui.goalOpen===undefined&&j===p.focus);
+    var next=ms.filter(function(m){return !m.done;}).sort(function(a,b){return (a.due||"9").localeCompare(b.due||"9");})[0];
+    h+='<div class="card"><div class="row" style="justify-content:space-between"><span class="label">'+(j===p.focus?'★ Main focus':'In the background')+'</span><span class="hint">'+(ms.length?done+' of '+ms.length+' milestones':'No milestones yet')+'</span></div>';
+    h+='<button type="button" class="choice" aria-expanded="'+open+'" data-gopen="'+esc(j)+'" style="background:transparent;box-shadow:none;border:none;padding:0;min-height:0"><span class="big" style="font-size:20px">'+esc(j)+'</span><small>'+(g.objective?'Objective: “'+esc(g.objective)+'”':'No objective yet')+'</small></button>';
+    h+='<div class="bar" role="img" aria-label="'+pct+' percent of milestones done"><span style="width:'+pct+'%"></span></div>';
+    if(next&&!open) h+='<div class="hint">Next: '+esc(next.text)+(next.due?' · by '+esc(next.due):'')+'</div>';
+    if(open){
+      h+='<label class="hint" for="obj-'+esc(slug(j))+'">Objective, in your words</label><div class="row"><input id="obj-'+esc(slug(j))+'" type="text" value="'+esc(g.objective)+'" placeholder="What do you want to be true at the end?" style="flex:1"><button type="button" class="btn" data-objsave="'+esc(j)+'">Save</button></div>';
+      h+='<span class="label">Milestones</span>';
+      if(!ms.length) h+='<div class="hint">No milestones yet. Add your own, or pick from ideas below.</div>';
+      ms.forEach(function(m,i){ h+='<div class="row" style="flex-wrap:nowrap"><label class="check" style="flex:1"><input type="checkbox" data-mdone="'+esc(j)+'|'+i+'"'+(m.done?' checked':'')+'> <span'+(m.done?' class="strike"':'')+'>'+esc(m.text)+'</span></label><span class="hint" style="white-space:nowrap">'+(m.due?esc(m.due):'')+'</span><button type="button" class="btn" style="min-height:36px;padding:0 10px" aria-label="Remove milestone '+esc(m.text)+'" data-mdel="'+esc(j)+'|'+i+'">×</button></div>'; });
+      h+='<div class="grid2"><input id="mt-'+esc(slug(j))+'" type="text" placeholder="New milestone" aria-label="New milestone"><input id="md-'+esc(slug(j))+'" type="date" aria-label="Target date"></div><button type="button" class="btn primary" data-madd="'+esc(j)+'">Add milestone</button>';
+      var ideas=(MILESTONES[j]||[]).filter(function(t){return !ms.some(function(m){return m.text===t;});});
+      if(ideas.length) h+='<span class="label">Ideas – tap to add</span><div class="row">'+ideas.map(function(t){return '<button type="button" class="pill" data-midea="'+esc(j)+'|'+esc(t)+'">+ '+esc(t)+'</button>';}).join("")+'</div>';
+      h+='<span class="label">Tools for this journey</span><div class="row">'+(j==="Career and freelance"?'<button type="button" class="btn primary" data-go2="career">Open application kit</button>':'')+'<button type="button" class="btn" data-jwrite="'+esc(j)+'">Write about this</button><button type="button" class="btn" data-jnotes="'+esc(j)+'">See my notes</button></div>';
+    }
+    h+='</div>';
+  });
+  h+='<button type="button" class="btn block" data-go2="programme">Change journeys or time frame</button>';
+  return h;
+}
+function slug(t){ return t.toLowerCase().replace(/[^a-z0-9]+/g,"-"); }
+function allTimeView(){
+  var progs=allProgs(), y=ui.atYear||+today().slice(0,4);
+  var daysWithEntry={}; state.entries.forEach(function(e){ if(!e.vault) daysWithEntry[e.written]=1; });
+  var h='<p class="hello">All <em>time</em></p><div class="hint">Every programme you have run, and every day you wrote. Tap a day to open it.</div>';
+  var fin=state.programmes.length, ents=state.entries.length, wdays=Object.keys(daysWithEntry).length;
+  h+='<div class="grid2"><div><b class="big" style="font-size:24px">'+progs.length+'</b><div class="hint">programmes ('+fin+' finished)</div></div><div><b class="big" style="font-size:24px">'+ents+'</b><div class="hint">notes on '+wdays+' days</div></div></div>';
+  h+='<div class="card"><div class="row" style="justify-content:space-between"><button type="button" class="btn" data-year="'+(y-1)+'" aria-label="Previous year">←</button><b class="big" style="font-size:22px">'+y+'</b><button type="button" class="btn" data-year="'+(y+1)+'" aria-label="Next year"'+(y>=+today().slice(0,4)?' disabled':'')+'>→</button></div>';
+  h+='<div class="months">';
+  for(var m=0;m<12;m++){
+    var first=y+"-"+String(m+1).padStart(2,"0")+"-01", dim=new Date(y,m+1,0).getDate(), lead=(new Date(first+"T12:00:00").getDay()+6)%7;
+    h+='<div class="month"><div class="mname">'+new Date(first+"T12:00:00").toLocaleDateString("en-GB",{month:"short"})+'</div><div class="mgrid">';
+    for(var k=0;k<lead;k++) h+='<span></span>';
+    for(var dd=1;dd<=dim;dd++){ var iso=y+"-"+String(m+1).padStart(2,"0")+"-"+String(dd).padStart(2,"0"), pf=progFor(iso), st=pf&&iso<=today()?'background:'+pf.color+';':'';
+      h+='<button type="button" class="mday'+(daysWithEntry[iso]?' dot':'')+(iso===today()?' now':'')+'" style="'+st+'" data-day="'+iso+'" aria-label="'+iso+(pf?', '+esc(pf.p.goal):'')+(daysWithEntry[iso]?', has notes':'')+'"></button>'; }
+    h+='</div></div>';
+  }
+  h+='</div><div class="legend"><span>Colours match the programme cards below.</span><span><i style="background:#fff"></i>no programme</span><span><i style="background:#fff;box-shadow:inset 0 0 0 3px var(--ink)"></i>has notes</span><span><i style="background:var(--butter);border-width:3px"></i>today</span></div></div>';
+  h+='<span class="label">Programmes</span>';
+  if(!progs.length) h+='<div class="bubble">No programmes yet.</div>';
+  progs.slice().reverse().forEach(function(x){ var p=x.p, end=progEnd(p), cur=x.i===-1, len=daysBetween(p.start,cur?today():end)+1;
+    var ms=[]; Object.keys(p.objectives||{}).forEach(function(j){ ms=ms.concat(p.objectives[j].milestones); }); var md=ms.filter(function(m){return m.done;}).length;
+    var en=state.entries.filter(function(e){return e.written>=p.start&&e.written<=(cur?"9999":end);}).length;
+    h+='<div class="card" style="background:'+x.color+'"><div class="row" style="justify-content:space-between"><span class="label">'+(cur?'Running now':'Finished')+'</span><span class="hint">'+esc(p.start)+' – '+(cur?(p.days?esc(end):'open-ended'):esc(end))+'</span></div>'+
+      '<div class="big" style="font-size:20px">'+esc(p.goal)+'</div><div class="hint">'+(p.days?p.days+'-day programme':'Open-ended')+' · '+(cur?'day '+Math.max(1,len):len+' days')+' · ★ '+esc(p.focus)+'</div>'+
+      '<div class="hint">'+en+' notes'+(ms.length?' · '+md+' of '+ms.length+' milestones':'')+'</div>'+
+      '<div class="row"><button type="button" class="btn" data-pmap="'+x.i+'">Open its map</button><button type="button" class="btn" data-pnotes="'+esc(p.start)+'|'+esc(cur?today():end)+'">Notes from this time</button></div></div>'; });
+  h+='<button type="button" class="btn primary block" data-act="newProgramme">'+(state.programme?'Start a new programme':'Start a programme')+'</button>';
+  return h;
+}
+function careerView(){
+  if(!hasJ("Career and freelance")) return '<div class="bubble">The application kit belongs to the Career and freelance journey. Add that journey to use it.</div><button type="button" class="btn primary block" data-go2="programme">Add a journey</button>';
+  var h='<p class="hello">Career <em>kit</em></p><a href="#" class="hint" data-go2="goals">← Career goals and milestones</a><div class="card"><span class="label">Achievement bank</span>';
+  if(!state.achievements.length) h+='<div class="hint">Empty. Add achievements from your own entries – never invented.</div>';
+  state.achievements.forEach(function(a,i){ h+='<label class="check" style="align-items:flex-start"><input type="checkbox" data-tick="'+i+'"'+(ui.ticked[i]?' checked':'')+'><span><b>'+esc(a.title)+'</b><br><span class="hint">'+(a.source?'From entry '+esc(a.source):'No source entry')+' · result: '+esc(a.result||'[THE RESULT]')+'</span></span></label>'; });
+  h+='<input id="achTitle" type="text" placeholder="e.g. Led the supplier change" aria-label="Achievement"><div class="grid2"><select id="achSource" aria-label="Source entry"><option value="">Source entry</option>'+state.entries.filter(function(e){return !e.vault;}).map(function(e){return '<option value="'+esc(e.written+' – '+e.title)+'">'+esc(e.written+' – '+e.title)+'</option>';}).join("")+'</select><input id="achResult" type="text" placeholder="Result (leave empty if unknown)" aria-label="Result"></div><button type="button" class="btn" data-act="addAch">Add to achievement bank</button></div>';
+  h+='<div class="card"><span class="label">Application kit</span><label class="hint" for="job">Paste the job ad and role description</label><textarea id="job" placeholder="One requirement per line works best">'+esc(ui.jobText)+'</textarea><button type="button" class="btn primary" data-act="match">Match my evidence</button><div class="hint">LinkedIn: paste your profile text here too. Storytime drafts; you copy it in. It never signs in or posts.</div></div>';
+  if(ui.jobText){
+    var reqs=ui.jobText.split(/\n|•|;/).map(function(s){return s.replace(/^[-*\d.)\s]+/,"").trim();}).filter(function(s){return s.length>12;}).slice(0,12);
+    h+='<div class="card"><span class="label">How you match the ad</span>';
+    reqs.forEach(function(r){ var rw=words(r), best=null, score=0; state.achievements.forEach(function(a){ var sc=words(a.title+" "+(a.result||"")).filter(function(w){return rw.indexOf(w)>=0;}).length; if(sc>score){score=sc;best=a;} });
+      h+='<div><div style="font-weight:600;font-size:14px">“'+esc(r)+'”</div>'+(best?'<div class="hint">Your evidence: '+esc(best.title)+(best.source?' ('+esc(best.source)+')':'')+'</div>':'<div class="warmnote">Gap – none of your achievements mention this. Add a real example, or plan how you’ll talk about it.</div>')+'</div>'; });
+    h+='<span class="hint">Prototype matching uses shared words; on the NAS the document expert reads the ad and cites it.</span></div>';
+  }
+  var sel=state.achievements.filter(function(a,i){return ui.ticked[i];});
+  h+='<div class="card"><span class="label">CV draft</span>'+(sel.length?sel.map(function(a){return '<div style="font-size:14px;line-height:1.5">• '+esc(a.title)+(a.result?', delivering '+esc(a.result):', delivering [THE RESULT]')+'.</div>';}).join("")+'<div class="warmnote">Brackets are gaps your entries don’t answer. I won’t fill them in for you.</div><button type="button" class="btn" data-act="downloadCV">Download draft (.md)</button>':'<div class="hint">Tick achievements above to build a draft.</div>')+'</div>';
+  h+='<div class="card"><span class="label">Preparation plan</span><ul class="clean"><li>Tailor the CV to the ad</li><li>Draft the cover letter</li><li>Update LinkedIn headline and About</li><li>Practise three interview stories</li><li>Prepare questions to ask them</li></ul></div>';
+  return h;
+}
+function shareView(){
+  var list=state.entries.filter(function(e){return !e.vault;}), h='<div class="bubble">Choose what to share. You’ll see a preview first.</div><div class="card"><span class="label">Your entries</span>';
+  if(!list.length) h+='<div class="hint">No shareable entries yet.</div>';
+  list.forEach(function(e){ var i=state.entries.indexOf(e); h+='<label class="check"><input type="checkbox" data-share="'+i+'"'+(ui.shareSel[i]?' checked':'')+'> '+esc(e.written+' – '+e.title)+(e.journey==="Money and finances"?' <span class="tag road">money</span>':'')+'</label>'; });
+  h+='</div>';
+  var chosen=Object.keys(ui.shareSel).filter(function(k){return ui.shareSel[k];}).map(function(k){return state.entries[+k];}).filter(Boolean);
+  var money=chosen.filter(function(e){return e.journey==="Money and finances";});
+  var vaultCount=state.entries.filter(function(e){return e.vault;}).length;
+  h+='<div class="card"><span class="label">Privacy check</span><div style="font-size:14px">Included: '+chosen.length+' entr'+(chosen.length===1?'y':'ies')+'</div><div style="font-size:14px">Left out: '+vaultCount+' vault entr'+(vaultCount===1?'y':'ies')+' (never shared)</div>'+
+     (money.length?'<div class="warmnote">'+money.length+' money entr'+(money.length===1?'y is':'ies are')+' selected. Are you sure?</div>':'')+
+     (chosen.length?'<div class="note">Does this mention other people? Ask them before sharing their stories or photos.</div>':'')+
+     '<button type="button" class="btn primary" data-act="exportShare"'+(chosen.length?'':' disabled')+'>Approve and download as Markdown</button><span class="hint">On the NAS: copy to a shared family folder or make a photo album. Printable PDF and calendar file: <span class="tag road">Roadmap</span></span></div>';
+  return h;
+}
+function settingsView(){
+  var s=state.settings;
+  var h=toneCard(s.tone,s.twists);
+  h+='<div class="card"><span class="label">Check-ins</span><div class="row" data-group="rhythm">'+["Daily","3× a week","Weekly","When I open it"].map(function(x){return '<button type="button" class="pill" aria-pressed="'+(s.rhythm===x)+'" data-val="'+x+'">'+x+'</button>';}).join("")+'</div></div>';
+  h+='<div class="card"><div class="row" style="justify-content:space-between"><span class="label">How prompts reach you</span><span class="tag road">Roadmap</span></div>'+["App notification","Email","Calendar invite","SMS"].map(function(c){return '<label class="check"><input type="checkbox" disabled> '+c+'</label>';}).join("")+'<div class="note">Prompts would show only the journey and a starter question, never what you wrote.</div></div>';
+  h+='<div class="card"><span class="label">Your data</span><div class="hint">Journal folder: '+esc(s.folder)+' · '+state.entries.length+' entries</div><div class="grid2"><button type="button" class="btn" data-act="exportAll">Export all (JSON)</button><button type="button" class="btn" data-act="sample">Load sample data</button></div><button type="button" class="btn" data-act="reset">Delete everything in this browser</button></div>';
+  h+='<div class="note">Storytime is a coach, not therapy. If you’re struggling or feel unsafe, contact local emergency services, a crisis line or someone you trust.</div>';
+  return h;
+}
+
+/* ---------- reflection logic ---------- */
+function buildReflection(text){
+  var s=state.settings, sts=sentences(text), h='';
+  var risk=has(text,RISK);
+  if(risk){
+    return '<div class="card" role="alert"><b>I’m really glad you wrote this down.</b><div style="font-size:14px;line-height:1.5">It sounds like you may be in a lot of pain. Please reach out now to someone you trust, a crisis line or local emergency services. You don’t have to handle this alone.</div><div class="hint">I’ve paused reflection and plot twists. Nothing has been saved unless you choose to save it.</div></div>';
+  }
+  var heavy=has(text,HEAVY);
+  var feel=FEELINGS.filter(function(f){return text.toLowerCase().indexOf(f)>=0;});
+  if(ui.mode==="Listen"){
+    h+='<div class="bubble">'+esc(toneLead())+'Here’s what I heard, in three parts. Change anything that’s off.</div><div class="card">'+
+       '<span class="label">What happened</span><div style="font-size:14px">'+esc(sts.slice(0,2).join(" ")||text)+'</div>'+
+       '<span class="label">What you felt</span><div style="font-size:14px">'+(feel.length?'You used: '+feel.map(function(f){return '“'+esc(f)+'”';}).join(", ")+'.':'You didn’t name a feeling. Want to add one?')+'</div>'+
+       '<span class="label">What you think it means</span><div style="font-size:14px">In your words: “'+esc(sts[sts.length-1]||text)+'”</div></div>';
+  } else if(ui.mode==="Explore"){
+    h+='<div class="bubble">'+esc(toneLead())+'Three questions, answer any or none:</div><div class="card"><ul class="clean">'+
+       '<li>What would you like to be true about this a month from now?</li><li>If a friend wrote this, what would you tell them?</li><li>What is one thing here you can influence, and one you can’t?</li></ul>'+
+       (state.programme?'<div class="note">Link to your goal: “'+esc(state.programme.goal)+'”. Does this entry move you towards it, away from it, or neither?</div>':'')+'</div>';
+  } else {
+    h+='<div class="bubble">'+esc(toneLead())+'Let’s turn one insight into a small experiment.</div><div class="card"><label class="label" for="expAction">Experiment</label><input id="expAction" type="text" placeholder="e.g. Tell one interview story out loud">'+
+       '<div class="grid2"><div><label class="hint" for="expCount">How many times</label><input id="expCount" type="number" min="1" max="21" value="3"></div><div><label class="hint" for="expReview">Review on</label><input id="expReview" type="date" value="'+addDays(today(),7)+'"></div></div><button type="button" class="btn primary" data-act="setExp">Set this experiment</button></div>';
+  }
+  for(var i=0;i<CRITIC.length;i++){ var m=text.match(CRITIC[i]); if(m){
+    h+='<div class="card"><span class="label">Inner critic, said more fairly</span><div class="strike" style="font-size:14px">“'+esc(m[0].trim())+'”</div><div style="font-size:14px">Try: “This time I ____. I also have evidence that ____.”</div><div class="note">One manageable step: write one sentence of evidence against the harsh version.</div></div>'; break; } }
+  if(s.twists==="Offer them" && !heavy && !ui.twistShown){
+    h+='<div class="twist"><b>Want a plot twist?</b><div style="font-size:14px">Only if it feels right. I can retell this from another angle – a possibility, not the truth.</div><div class="row"><button type="button" class="btn warm" data-act="twistYes">Yes, show me</button><button type="button" class="btn" data-act="twistNo">Not today</button></div></div>';
+  }
+  if(heavy) h+='<div class="note">This sounds heavy. I’ll stay with listening – no plot twists unless you ask.</div>';
+  h+='<div class="grid2">'+(ui.savedIdx!==null?'<button type="button" class="btn primary" data-act="addReflection">Add reflection to entry</button>':(ui.lastOff?'<button type="button" class="btn primary" data-act="saveAfterAll">Save it after all</button>':''))+(hasJ("Career and freelance")?'<button type="button" class="btn" data-act="addFromEntry">Add to achievement bank</button>':'')+'</div>';
+  return h;
+}
+var PROMPTS=["What took more energy than it should have today?","Describe one small moment you want to remember.","What would you try if you knew it couldn’t fail?","Write a letter to yourself one year from now.","What are you avoiding, and what is the smallest first step?","Describe a dream from last night – just the images first."];
+
+/* ---------- actions ---------- */
+function readDraft(){ var big=document.getElementById("draftBig"); if(big){ ui.draft=big.value; return; } var d=document.getElementById("draft"); if(d){ ui.draft=d.value; ui.happened=document.getElementById("happened").value; ui.journey=document.getElementById("journey").value; ui.offRecord=document.getElementById("offRecord").checked; ui.vault=!ui.offRecord&&document.getElementById("vault").checked; } }
+function storeEntry(t){
+  var title=(sentences(t)[0]||t).slice(0,48);
+  state.entries.push({written:today(),happened:ui.happened||"",title:title,text:t,journey:ui.journey,vault:ui.vault,mode:ui.mode,reflection:""});
+  ui.savedIdx=state.entries.length-1; setActivity("Write – saved “"+title+"”"); save(); return title;
+}
+function savedLine(){
+  if(ui.lastOff) return '<div class="warmnote" role="status">Off the record – nothing was saved. <a href="#" data-act="saveAfterAll">Save it after all</a></div>';
+  if(ui.savedIdx===null) return '';
+  return '<div class="note" role="status">✓ Saved automatically'+(ui.vault?' in your private vault':'')+' · '+today()+'. <a href="#" data-act="undoSave">Don’t keep it</a></div>';
+}
+function saveEntry(){
+  readDraft(); var t=ui.draft.trim(); if(!t){ alertMsg("Write something first."); return; }
+  if(ui.offRecord){ ui.reflection='<div class="note" role="status">Off the record – thank you for writing. Nothing was saved.</div>'; ui.draft=""; ui.offRecord=false; render(); return; }
+  storeEntry(t);
+  ui.reflection='<div class="card" role="status"><b>Saved'+(ui.vault?' in your private vault':'')+'.</b><div class="hint">Written '+today()+'. On the NAS this is a Markdown file in '+esc(state.settings.folder)+'/'+(ui.vault?'vault':'entries')+' (the NAS asks you to approve each save).</div></div>';
+  ui.draft="";ui.happened="";ui.vault=false;ui.savedIdx=null;ui.twistShown=false; render();
+}
+function alertMsg(m){ ui.reflection='<div class="warmnote" role="status">'+esc(m)+'</div>'; render(); }
+function download(name,text,type){ var b=new Blob([text],{type:type||"text/markdown"}), a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download=name; document.body.appendChild(a); a.click(); setTimeout(function(){URL.revokeObjectURL(a.href); a.remove();},500); }
+function entryMd(e){ return "# "+e.title+"\n- Written: "+e.written+(e.happened?"\n- Happened: "+e.happened:"")+(e.journey?"\n- Journey: "+e.journey:"")+"\n- Privacy: "+(e.vault?"vault":"private")+"\n- Mode: "+e.mode+"\n\n"+e.text+"\n"; }
+
+function bind(){
+  view.querySelectorAll("[data-group]").forEach(function(g){
+    g.querySelectorAll("[data-val]").forEach(function(b){ b.addEventListener("click",function(){
+      var group=g.getAttribute("data-group"), val=b.getAttribute("data-val");
+      if(g.getAttribute("data-multi")){ b.setAttribute("aria-pressed", b.getAttribute("aria-pressed")==="true"?"false":"true"); return; }
+      g.querySelectorAll("[data-val]").forEach(function(x){ x.setAttribute("aria-pressed", x===b?"true":"false"); });
+      if(group==="mode"){ readDraft(); ui.mode=val; ui.reflection=null; render(); return; }
+      if(state.settings && (group==="tone"||group==="twists"||group==="rhythm") && ui.view==="settings"){ state.settings[group]=val; save(); }
+    }); });
+  });
+  view.querySelectorAll("[data-go2]").forEach(function(b){ b.addEventListener("click",function(ev){ ev.preventDefault(); go(b.getAttribute("data-go2")); }); });
+  view.querySelectorAll("[data-tab]").forEach(function(b){ b.addEventListener("click",function(){ ui.diaryTab=b.getAttribute("data-tab"); render(); }); });
+  view.querySelectorAll("[data-focus]").forEach(function(b){ b.addEventListener("click",function(){ state.programme.focus=b.getAttribute("data-focus"); setActivity("Check-in – changed main focus"); save(); render(); }); });
+  view.querySelectorAll("[data-mood]").forEach(function(b){ b.addEventListener("click",function(){ state.checkins=state.checkins.filter(function(c){return c.date!==today();}); state.checkins.push({date:today(),mood:b.getAttribute("data-mood")}); setActivity("Check-in"); save(); render(); }); });
+  view.querySelectorAll("[data-tick]").forEach(function(c){ c.addEventListener("change",function(){ ui.ticked[c.getAttribute("data-tick")]=c.checked; render(); }); });
+  view.querySelectorAll("[data-share]").forEach(function(c){ c.addEventListener("change",function(){ ui.shareSel[c.getAttribute("data-share")]=c.checked; render(); }); });
+  view.querySelectorAll("[data-act]").forEach(function(b){ b.addEventListener("click",function(ev){ ev.preventDefault(); act(b.getAttribute("data-act")); }); });
+  view.querySelectorAll("[data-pj]").forEach(function(b){ b.addEventListener("click",function(){ keepGoal(); var j=b.getAttribute("data-pj"), d=ui.prog, i=d.journeys.indexOf(j); if(i>=0){ d.journeys.splice(i,1); if(d.focus===j) d.focus=d.journeys[0]||""; } else { d.journeys.push(j); if(!d.focus) d.focus=j; } render(); }); });
+  view.querySelectorAll("[data-pf]").forEach(function(b){ b.addEventListener("click",function(){ keepGoal(); ui.prog.focus=b.getAttribute("data-pf"); render(); }); });
+  view.querySelectorAll("[data-pd]").forEach(function(b){ b.addEventListener("click",function(){ keepGoal(); ui.prog.days=+b.getAttribute("data-pd"); render(); }); });
+  view.querySelectorAll("[data-open]").forEach(function(b){ var f=function(ev){ var v=b.getAttribute("data-open"); if(v==="") return; ev.preventDefault(); ui.entryIdx=+v; go("entry"); }; b.addEventListener("click",f); b.addEventListener("keydown",function(ev){ if(ev.key==="Enter"||ev.key===" ") f(ev); }); });
+  view.querySelectorAll("[data-day]").forEach(function(b){ b.addEventListener("click",function(){ ui.dayDate=b.getAttribute("data-day"); go("day"); }); });
+  view.querySelectorAll("[data-dayopen]").forEach(function(b){ b.addEventListener("click",function(){ ui.dayDate=b.getAttribute("data-dayopen"); go("day"); }); });
+  view.querySelectorAll("[data-gopen]").forEach(function(b){ b.addEventListener("click",function(){ var j=b.getAttribute("data-gopen"); ui.goalOpen=(b.getAttribute("aria-expanded")==="true")?null:j; render(); }); });
+  view.querySelectorAll("[data-objsave]").forEach(function(b){ b.addEventListener("click",function(){ var j=b.getAttribute("data-objsave"), v=document.getElementById("obj-"+slug(j)).value.trim(); goalsOf(j).objective=v; if(j===state.programme.focus&&v) state.programme.goal=v; setActivity("Goals – "+j); save(); render(); }); });
+  view.querySelectorAll("[data-madd]").forEach(function(b){ b.addEventListener("click",function(){ var j=b.getAttribute("data-madd"), t=document.getElementById("mt-"+slug(j)).value.trim(); if(!t) return; goalsOf(j).milestones.push({text:t,due:document.getElementById("md-"+slug(j)).value,done:false}); ui.goalOpen=j; setActivity("Goals – "+j); save(); render(); }); });
+  view.querySelectorAll("[data-midea]").forEach(function(b){ b.addEventListener("click",function(){ var v=b.getAttribute("data-midea"), k=v.indexOf("|"), j=v.slice(0,k); goalsOf(j).milestones.push({text:v.slice(k+1),due:"",done:false}); ui.goalOpen=j; save(); render(); }); });
+  view.querySelectorAll("[data-mdone]").forEach(function(c){ c.addEventListener("change",function(){ var v=c.getAttribute("data-mdone").split("|"); var m=goalsOf(v[0]).milestones[+v[1]]; m.done=c.checked; m.doneOn=c.checked?today():""; ui.goalOpen=v[0]; setActivity("Goals – "+v[0]); save(); render(); }); });
+  view.querySelectorAll("[data-mdel]").forEach(function(b){ b.addEventListener("click",function(){ var v=b.getAttribute("data-mdel").split("|"); goalsOf(v[0]).milestones.splice(+v[1],1); ui.goalOpen=v[0]; save(); render(); }); });
+  view.querySelectorAll("[data-jwrite]").forEach(function(b){ b.addEventListener("click",function(){ ui.journey=b.getAttribute("data-jwrite"); ui.reflection=null; go("write"); }); });
+  view.querySelectorAll("[data-jnotes]").forEach(function(b){ b.addEventListener("click",function(){ ui.notesJ=b.getAttribute("data-jnotes"); ui.notesQ=""; go("notes"); }); });
+  view.querySelectorAll("[data-year]").forEach(function(b){ b.addEventListener("click",function(){ ui.atYear=+b.getAttribute("data-year"); render(); }); });
+  view.querySelectorAll("[data-pmap]").forEach(function(b){ b.addEventListener("click",function(){ var i=+b.getAttribute("data-pmap"); ui.mapProg=i<0?null:i; ui.view="__"; go("map"); }); });
+  view.querySelectorAll("[data-pnotes]").forEach(function(b){ b.addEventListener("click",function(){ var v=b.getAttribute("data-pnotes").split("|"); ui.notesFrom=v[0]; ui.notesTo=v[1]; ui.notesJ=""; ui.notesQ=""; go("notes"); }); });
+  var big=document.getElementById("draftBig"); if(big){ big.addEventListener("input",function(){ var n=(big.value.trim().match(/\S+/g)||[]).length; document.getElementById("wc").textContent=n+" word"+(n===1?"":"s"); }); big.addEventListener("keydown",function(e){ if(e.key==="Escape"){ e.preventDefault(); act("collapse"); } }); }
+  var orc=document.getElementById("offRecord"); if(orc) orc.addEventListener("change",function(){ readDraft(); render(); });
+  var q=document.getElementById("q"); if(q) q.addEventListener("keydown",function(e){ if(e.key==="Enter"){ act("ask"); } });
+}
+function keepStart(){ var ps=document.getElementById("pstart"); if(ps&&ui.prog) ui.prog.start=ps.value||today(); }
+function keepGoal(){ keepStart(); var g=document.getElementById("goal"); if(g&&ui.prog) ui.prog.goal=g.value; var c=document.getElementById("customDays"); if(c&&+c.value>0&&ui.prog) ui.prog.days=+c.value; }
+function pressed(group){ var g=view.querySelector('[data-group="'+group+'"]'); if(!g) return []; return Array.prototype.map.call(g.querySelectorAll('[aria-pressed="true"]'),function(b){return b.getAttribute("data-val");}); }
+
+function act(a){
+  var p=state.programme;
+  switch(a){
+    case "finishOnboarding":
+      state.settings={folder:document.getElementById("folder").value.trim()||"Storytime",tone:pressed("tone")[0]||"Gentle",twists:pressed("twists")[0]||"Offer them",rhythm:pressed("rhythm")[0]||"3× a week"};
+      setActivity("Settings – first start"); save(); go("programme"); break;
+    case "sample": loadSample(); go("checkin"); break;
+    case "openMenu": go("menu"); break;
+    case "back": back(); break;
+    case "askFinish": ui.confirmFinish=true; render(); break;
+    case "cancelFinish": ui.confirmFinish=false; render(); break;
+    case "finishProgramme": if(p){ p.end=today(); p.status="finished"; state.programmes.push(p); state.programme=null; ui.confirmFinish=false; setActivity("All time – finished a programme"); save(); go("alltime"); } break;
+    case "newProgramme": ui.prog=null; ui.progNew=true; ui.confirmFinish=false; ui.view="__"; go("programme"); break;
+    case "toAllTime": go("alltime"); break;
+    case "clearRange": ui.notesFrom=ui.notesTo=null; render(); break;
+    case "expand": readDraft(); ui.focusMode=true; render(); var tb=document.getElementById("draftBig"); if(tb){ tb.focus(); tb.setSelectionRange(tb.value.length,tb.value.length); } break;
+    case "collapse": readDraft(); ui.focusMode=false; render(); var eb=document.getElementById("expandBtn"); if(eb) eb.focus(); break;
+    case "promptBig": readDraft(); ui.draft=(ui.draft?ui.draft+"\n\n":"")+PROMPTS[Math.floor(Math.random()*PROMPTS.length)]+"\n"; render(); var tb2=document.getElementById("draftBig"); if(tb2){ tb2.focus(); tb2.setSelectionRange(tb2.value.length,tb2.value.length); } break;
+    case "notesFilter": ui.notesQ=document.getElementById("nq").value.trim(); ui.notesJ=document.getElementById("nj").value; ui.showVault=document.getElementById("nv").checked; render(); break;
+    case "followUp": var fe=state.entries[ui.entryIdx]; if(fe){ ui.draft="Follow-up to “"+fe.title+"” ("+fe.written+"):\n\n"; ui.journey=fe.journey||""; ui.reflection=null; go("write"); } break;
+    case "askAbout": var ae=state.entries[ui.entryIdx]; if(ae){ ui.diaryTab="diary"; ui.query=(words(ae.title)[0]||ae.title); ui.includeVault=ae.vault; setActivity("Diary – “"+ui.query+"”"); go("diary"); } break;
+    case "entryToBank": var be=state.entries[ui.entryIdx]; if(be){ go("career"); var at=document.getElementById("achTitle"); if(at) at.value=(sentences(be.text)[0]||be.title).slice(0,80); var as=document.getElementById("achSource"); if(as) as.value=be.written+" – "+be.title; } break;
+    case "writeForDay": ui.happened=ui.dayDate; ui.reflection=null; go("write"); break;
+    case "skipProgramme": if(state.programme) back(); else go("write"); break;
+    case "prompt": readDraft(); ui.draft=(ui.draft?ui.draft+"\n\n":"")+PROMPTS[Math.floor(Math.random()*PROMPTS.length)]+"\n"; render(); break;
+    case "reflect": readDraft(); if(!ui.draft.trim()){ alertMsg("Write something first – or pick a starter prompt."); return; }
+      ui.reflectText=ui.draft.trim(); ui.savedIdx=null; ui.twistShown=false; ui.lastOff=false;
+      if(!ui.offRecord && !has(ui.reflectText,RISK)) storeEntry(ui.reflectText);
+      ui.lastOff=ui.offRecord; ui.offRecord=false; ui.vault=false; ui.draft=""; ui.reflection=savedLine()+buildReflection(ui.reflectText); setActivity("Write – "+ui.mode); render(); break;
+    case "undoSave": if(ui.savedIdx!==null){ state.entries.splice(ui.savedIdx,1); ui.savedIdx=null; ui.lastOff=true; save(); ui.reflection=savedLine()+buildReflection(ui.reflectText); render(); } break;
+    case "saveAfterAll": ui.lastOff=false; if(ui.reflectText){ storeEntry(ui.reflectText); ui.reflection=savedLine()+buildReflection(ui.reflectText); } render(); break;
+    case "addReflection": if(ui.savedIdx!==null&&state.entries[ui.savedIdx]){ state.entries[ui.savedIdx].reflection=ui.mode; save(); ui.reflection=savedLine()+'<div class="note" role="status">Reflection added to the entry.</div>'+buildReflection(ui.reflectText); render(); } break;
+    case "justSave": saveEntry(); break;
+    case "noAnalyse": saveEntry(); break;
+    case "stop": readDraft(); ui.reflection='<div class="note" role="status">Stopped. '+(ui.draft.trim()?'Your text is still in the box and has not been saved.':'Nothing more will happen.')+'</div>'; render(); break;
+    case "twistYes": ui.twistShown=true; ui.reflection=savedLine()+buildReflection(ui.reflectText)+'<div class="twist"><b>Plot twist (a possibility, not the truth)</b><div style="font-size:14px">Imagine this as chapter 3 of a longer story. What does the main character learn here that they will need in chapter 7?</div></div>'; render(); break;
+    case "twistNo": ui.twistShown=true; ui.reflection=savedLine()+buildReflection(ui.reflectText); render(); break;
+    case "setExp":
+      if(!p){ alertMsg("Start a programme first – experiments live in it."); return; }
+      var act2=document.getElementById("expAction").value.trim(); if(!act2){ return; }
+      p.experiment={action:act2,count:Math.max(1,+document.getElementById("expCount").value||3),done:0,review:document.getElementById("expReview").value||addDays(today(),7)};
+      setActivity("Act – new experiment"); save(); ui.reflection=savedLine()+'<div class="card" role="status"><b>Experiment set.</b><div class="hint">Review on '+esc(p.experiment.review)+'. You’ll see it in your check-in.</div></div>'; render(); break;
+    case "addFromEntry": var t=(sentences(ui.reflectText)[0]||"").slice(0,80); go("career"); var f=document.getElementById("achTitle"); if(f) f.value=t; break;
+    case "nextQuote": ui.quoteIx++; render(); break;
+    case "writeQuote": var q=QUOTES[ui.quoteIx%QUOTES.length]; ui.draft="“"+q[0]+"” – "+q[1]+"\n\n"; ui.mode="Explore"; go("write"); break;
+    case "expDone": if(p&&p.experiment){ p.experiment.done=Math.min(p.experiment.count,p.experiment.done+1); state.checkins=state.checkins.filter(function(c){return c.date!==today();}).concat([{date:today(),mood:"Okay"}]); setActivity("Check-in – experiment"); save(); render(); } break;
+    case "expClear": if(p){ p.experiment=null; save(); render(); } break;
+    case "pause": if(p){ p.paused=!p.paused; save(); render(); } break;
+    case "skip": state.checkins=state.checkins.filter(function(c){return c.date!==today();}).concat([{date:today(),mood:"Skip"}]); save(); render(); break;
+    case "lighter": if(p){ p.lighter=!p.lighter; save(); render(); } break;
+    case "ask": ui.query=document.getElementById("q").value.trim(); ui.includeVault=document.getElementById("incVault").checked; setActivity("Diary – “"+ui.query+"”"); render(); break;
+    case "saveProgramme":
+      keepGoal(); var d=ui.prog, msg=document.getElementById("progMsg");
+      if(!d.journeys.length){ msg.innerHTML='<div class="warmnote">Pick at least one journey.</div>'; return; }
+      if(!d.goal.trim()){ msg.innerHTML='<div class="warmnote">Please write your goal in your own words.</div>'; document.getElementById("goal").focus(); return; }
+      if(ui.progNew||!p){ if(p){ p.end=today(); p.status="finished"; state.programmes.push(p); } state.programme={start:d.start||today(),experiment:null,journeys:d.journeys.slice(),focus:d.focus||d.journeys[0],goal:d.goal.trim(),days:d.days,objectives:{}}; }
+      else state.programme=Object.assign(p,{journeys:d.journeys.slice(),focus:d.focus||d.journeys[0],goal:d.goal.trim(),days:d.days});
+      ui.prog=null; ui.progNew=false; ui.mapProg=null; setActivity("Programme – "+state.programme.focus); save(); go("checkin"); break;
+    case "addAch":
+      var ti=document.getElementById("achTitle").value.trim(); if(!ti) return;
+      state.achievements.push({title:ti,source:document.getElementById("achSource").value,result:document.getElementById("achResult").value.trim()});
+      setActivity("Career – achievement bank"); save(); render(); break;
+    case "match": ui.jobText=document.getElementById("job").value; setActivity("Career – application kit"); render(); break;
+    case "downloadCV":
+      var sel=state.achievements.filter(function(x,i){return ui.ticked[i];});
+      download("cv-draft.md","# CV draft\n\n"+sel.map(function(x){return "- "+x.title+", delivering "+(x.result||"[THE RESULT]")+"."+(x.source?" (source: "+x.source+")":"");}).join("\n")+"\n"); break;
+    case "exportShare":
+      var ch=Object.keys(ui.shareSel).filter(function(k){return ui.shareSel[k];}).map(function(k){return state.entries[+k];}).filter(function(e){return e&&!e.vault;});
+      download("storytime-shared.md",ch.map(entryMd).join("\n---\n\n")); setActivity("Share – exported"); break;
+    case "exportAll": download("storytime-export.json",JSON.stringify(state,null,2),"application/json"); break;
+    case "reset": if(window.confirm("Delete all Storytime data in this browser?")){ state=blank(); save(); ui.view="write"; render(); } break;
+  }
+}
+function loadSample(){
+  var s=addDays(today(),-11);
+  state={settings:{folder:"Storytime",tone:"Gentle",twists:"Offer them",rhythm:"3× a week"},
+    programme:{start:s,days:30,journeys:["Career and freelance","Learning and getting better","Money and finances"],focus:"Career and freelance",goal:"Update my CV and apply for five roles",objectives:{"Career and freelance":{objective:"Update my CV and apply for five roles",milestones:[{text:"Collect 3 achievements in my achievement bank",due:addDays(s,6),done:true,doneOn:addDays(s,6)},{text:"Tailor my CV to one real ad",due:addDays(s,13),done:false},{text:"Send my first application",due:addDays(s,18),done:false},{text:"Send five applications",due:addDays(s,29),done:false}]},"Learning and getting better":{objective:"Make a bowl I would give as a gift",milestones:[{text:"Practise four times in one week",due:"",done:false}]}},experiment:{action:"Tell one interview story out loud",count:3,done:1,review:addDays(today(),4)},paused:false,lighter:false},
+    programmes:[
+      {start:addDays(s,-75),days:45,end:addDays(s,-31),status:"finished",journeys:["Learning and getting better","Creativity and expression"],focus:"Learning and getting better",goal:"Learn the basics of pottery",experiment:null,objectives:{"Learning and getting better":{objective:"Learn the basics of pottery",milestones:[{text:"Go to five classes",due:"",done:true},{text:"Make a bowl that holds water",due:"",done:true},{text:"Glaze my first piece",due:"",done:false}]}}},
+      {start:addDays(s,-25),days:14,end:addDays(s,-15),status:"finished",journeys:["Money and finances"],focus:"Money and finances",goal:"Write my money story",experiment:null,objectives:{}}
+    ],
+    entries:[
+      {written:addDays(s,-62),happened:"",title:"Signed up for pottery",text:"Signed up for the Thursday pottery class. Nervous, but curious.",journey:"Learning and getting better",vault:false,mode:"Listen",reflection:""},
+      {written:addDays(s,-53),happened:addDays(s,-54),title:"First pottery class",text:"First pottery class tonight. Clumsy hands, but I felt lighter after.",journey:"Learning and getting better",vault:false,mode:"Listen",reflection:""},
+      {written:addDays(s,-2),happened:"",title:"Category review process",text:"Finished setting up the category review process. Proud of how the team took it on.",journey:"Career and freelance",vault:false,mode:"Act or create",reflection:""},
+      {written:addDays(today(),-1),happened:addDays(today(),-2),title:"Interview reflection",text:"The interview went fine on paper, but I froze when they asked about leading the supplier change. I know I did it. I just couldn't find the words.",journey:"Career and freelance",vault:false,mode:"Listen",reflection:""},
+      {written:addDays(today(),-3),happened:"",title:"Dream about a house",text:"Dreamt of a house with an extra room I had never seen. Calm, curious.",journey:"Dreams and inner life",vault:true,mode:"Explore",reflection:""}
+    ],
+    achievements:[{title:"Led the supplier change",source:addDays(today(),-1)+" – Interview reflection",result:""},{title:"Set up the category review process",source:addDays(s,-2)+" – Category review process",result:""}],
+    checkins:[{date:s,mood:"Good"},{date:addDays(s,1),mood:"Okay"},{date:addDays(s,3),mood:"Good"},{date:addDays(s,5),mood:"Skip"},{date:addDays(s,8),mood:"Okay"}],
+    lastActivity:{date:addDays(today(),-1),view:"career",label:"Career – drafting a CV for Procurement Lead"}};
+  ui.ticked={}; ui.shareSel={}; save();
+}
+render();
+})();
+</script>
+</body>
+</html>
